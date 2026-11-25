@@ -1,0 +1,13 @@
+{
+  "name": "agy-open-in-app",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Antigravity 2.0 Sidecar + Skill plugin to detect Git worktrees and open projects in VS Code, Trae CN, GoLand, PyCharm, and Winc without MCP.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

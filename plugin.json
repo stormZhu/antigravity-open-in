@@ -1,0 +1,21 @@
+{
+  "name": "open-in-app",
+  "displayName": "Open in Third-Party App",
+  "version": "0.2.0",
+  "logo": "assets/logo.svg",
+  "author": {
+    "name": "stormZhu",
+    "url": "https://github.com/stormZhu"
+  },
+  "homepage": "https://github.com/stormZhu/antigravity-open-in",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stormZhu/antigravity-open-in"
+  },
+  "description": "Antigravity 2.0 plugin (Sidecar + Skill, zero MCP) that automatically detects the active window's Git worktree and opens it in VS Code, Trae CN, GoLand, PyCharm, or Winc.",
+  "suggestedPrompts": [
+    "用 VS Code 打开当前 worktree",
+    "用 Trae CN 打开主仓库",
+    "列出当前项目的所有 worktree 并选择编辑器打开"
+  ]
+}

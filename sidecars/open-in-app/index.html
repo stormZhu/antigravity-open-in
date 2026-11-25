@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open In App</title>
+  <script src="/preload.js"></script>
+  <style>
+    :root {
+      --bg-base: var(--background, #0f1117);
+      --bg-card: var(--card, #161922);
+      --bg-popover: var(--popover, #1b1f2b);
+      --bg-hover: var(--secondary, #232838);
+      --border-color: var(--border, rgba(255, 255, 255, 0.1));
+      --fg-text: var(--foreground, #eef1f7);
+      --fg-muted: var(--muted-foreground, #8b95a7);
+      --brand: var(--primary, #4f8cff);
+      --brand-soft: color-mix(in srgb, var(--brand) 14%, transparent);
+      --ok: #34d399;
+      --ok-soft: rgba(52, 211, 153, 0.14);
+      --warn: #f59e0b;
+      --warn-soft: rgba(245, 158, 11, 0.14);
+      --star: #fbbf24;
+      --err: #f87171;
+      --err-soft: rgba(248, 113, 113, 0.12);
+      --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.45);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    :root[data-theme="light"] {
+      --bg-base: var(--background, #f6f7f9);
+      --bg-card: var(--card, #ffffff);
+      --bg-popover: var(--popover, #ffffff);
+      --bg-hover: var(--secondary, #f1f3f7);
+      --border-color: var(--border, rgba(15, 23, 42, 0.1));
+      --fg-text: var(--foreground, #0f172a);
+      --fg-muted: var(--muted-foreground, #64748b);
+      --brand: var(--primary, #2563eb);
+      --brand-soft: color-mix(in srgb, var(--brand) 10%, transparent);
+      --ok: #059669;
+      --ok-soft: rgba(5, 150, 105, 0.1);
+      --warn: #d97706;
+      --warn-soft: rgba(217, 119, 6, 0.12);
+      --star: #eab308;
+      --err: #dc2626;
+      --err-soft: rgba(220, 38, 38, 0.08);
+      --shadow-popover: 0 12px 28px rgba(15, 23, 42, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 12px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--fg-text);
+      background: var(--bg-base);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .row-between {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .project-head {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .project-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .project-name-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .folder-icon {
+      color: var(--fg-muted);
+      flex-shrink: 0;
+    }
+
+    .path-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 5px;
+      min-width: 0;
+    }
+
+    .mono-path {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1.5px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-worktree {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .badge-main {
+      background: var(--ok-soft);
+      color: var(--ok);
+    }
+
+    .badge-warn {
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+
+    .badge-subtle {
+      background: var(--bg-hover);
+      color: var(--fg-muted);
+      font-weight: 500;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      color: var(--fg-text);
+      background: transparent;
+      border: none;
+      padding: 0;
+      font-size: 12px;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 1px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-base);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+      flex-shrink: 0;
+      transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+    }
+
+    .icon-btn:hover:not(:disabled) {
+      background: var(--bg-hover);
+      color: var(--fg-text);
+      border-color: var(--brand);
+    }
+
+    .icon-btn.mini {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .icon-btn.mini:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--border-color);
+    }
+
+    .icon-btn.copied {
+      color: var(--ok);
+    }
+
+    .spinning svg {
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Split Launcher (T3 Code inspired) */
+    .launcher-wrap {
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .split-btn {
+      display: flex;
+      align-items: stretch;
+      width: 100%;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--bg-base);
+      overflow: hidden;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .split-btn:hover {
+      border-color: var(--brand);
+    }
+
+    .split-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.14s ease, transform 0.08s ease;
+    }
+
+    .split-main:hover:not(:disabled) {
+      background: var(--bg-hover);
+    }
+
+    .split-main:active:not(:disabled) {
+      transform: scale(0.992);
+    }
+
+    .split-main-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .split-divider {
+      width: 1px;
+      background: var(--border-color);
+    }
+
+    .split-toggle {
+      width: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+      transition: background 0.14s ease, color 0.14s ease;
+    }
+
+    .split-toggle svg {
+      transition: transform 0.15s ease;
+    }
+
+    .split-toggle[aria-expanded="true"] svg {
+      transform: rotate(180deg);
+    }
+
+    .split-toggle:hover:not(:disabled) {
+      background: var(--bg-hover);
+      color: var(--fg-text);
+    }
+
+    /* Dropdown Menu */
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: var(--bg-popover);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: var(--shadow-popover);
+      display: none;
+    }
+
+    .dropdown-menu.open {
+      display: block;
+      animation: popIn 0.12s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .menu-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--fg-muted);
+      padding: 4px 8px 3px;
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 5px 4px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 8px;
+      padding: 2px 3px;
+      transition: background 0.12s ease;
+    }
+
+    .menu-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .menu-item-btn {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      text-align: left;
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+
+    .menu-item-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .menu-item-hint {
+      font-size: 11px;
+      color: var(--fg-muted);
+      opacity: 0.75;
+      flex-shrink: 0;
+    }
+
+    .check-mark {
+      color: var(--brand);
+      display: inline-flex;
+      align-items: center;
+      width: 14px;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .star-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+      opacity: 0.35;
+      flex-shrink: 0;
+      transition: opacity 0.12s ease, color 0.12s ease, background 0.12s ease;
+    }
+
+    .menu-item:hover .star-btn,
+    .star-btn:focus-visible {
+      opacity: 0.85;
+    }
+
+    .star-btn:hover {
+      opacity: 1 !important;
+      background: var(--bg-card);
+    }
+
+    .star-btn.active {
+      color: var(--star);
+      opacity: 1;
+    }
+
+    .menu-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 8px 3px;
+    }
+
+    label.toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--fg-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    label.toggle input {
+      accent-color: var(--brand);
+      margin: 0;
+    }
+
+    /* Favorites Quick Chips */
+    .fav-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .fav-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-base);
+      font-size: 11.5px;
+      font-weight: 500;
+      transition: border-color 0.14s ease, background 0.14s ease;
+    }
+
+    .fav-chip:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--brand);
+    }
+
+    .fav-chip.active {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+    }
+
+    /* Worktree Selector inside subtle divider section */
+    .wt-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 12px 0 10px;
+    }
+
+    .wt-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      font-size: 11.5px;
+      color: var(--fg-muted);
+    }
+
+    .reset-wt-btn {
+      font-size: 11px;
+      color: var(--brand);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .reset-wt-btn:hover {
+      background: var(--brand-soft);
+    }
+
+    .wt-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .wt-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+      padding: 7px 9px;
+      border-radius: 9px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-base);
+      transition: border-color 0.14s ease, background 0.14s ease;
+    }
+
+    .wt-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .wt-item.selected {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+    }
+
+    .wt-item-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .wt-branch {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .wt-subpath {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--fg-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .empty-box {
+      padding: 12px;
+      border-radius: 9px;
+      border: 1px dashed var(--border-color);
+      color: var(--fg-muted);
+      font-size: 12px;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .status-bar {
+      padding: 7px 10px;
+      border-radius: 9px;
+      font-size: 12px;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      background: var(--err-soft);
+      color: var(--err);
+      word-break: break-word;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .status-bar.visible {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="card">
+      <div class="row-between">
+        <div class="project-head">
+          <div id="projectHeader" class="project-title">
+            <span class="project-name-wrap">当前窗口</span>
+            <span class="badge badge-subtle">识别中</span>
+          </div>
+          <div class="path-row">
+            <div id="activePathText" class="mono-path">正在读取当前工作区...</div>
+            <button id="copyPathBtn" class="icon-btn mini" type="button" title="复制当前路径" style="display:none;">
+              <svg width="12.5" height="12.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+        <button id="refreshBtn" class="icon-btn" type="button" title="重新识别当前窗口项目">
+          <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        </button>
+      </div>
+
+      <div class="launcher-wrap" id="launcherWrap">
+        <div class="split-btn">
+          <button id="primaryOpenBtn" class="split-main" type="button" disabled>
+            <span id="primaryAppIcon"></span>
+            <span id="primaryAppLabel" class="split-main-label">选择编辑器打开</span>
+          </button>
+          <span class="split-divider"></span>
+          <button id="dropdownToggleBtn" class="split-toggle" type="button" aria-haspopup="menu" aria-expanded="false" title="切换编辑器与收藏">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+
+        <div id="dropdownMenu" class="dropdown-menu" role="menu"></div>
+      </div>
+
+      <div id="favBar" class="fav-bar" style="display:none;"></div>
+
+      <div id="emptyHint" class="empty-box" style="display:none;">
+        当前窗口尚未打开项目或 worktree，打开任意项目后会自动识别。
+      </div>
+
+      <div id="worktreesSection" style="display:none;">
+        <div class="wt-divider"></div>
+        <div class="wt-section-head">
+          <span id="wtCountLabel">Worktrees</span>
+          <button id="resetWtBtn" class="reset-wt-btn" type="button" style="display:none;">切回当前会话</button>
+        </div>
+        <div id="worktreeList" class="wt-list"></div>
+      </div>
+    </div>
+
+    <div id="statusBar" class="status-bar" role="alert">
+      <span id="statusText"></span>
+      <button id="dismissErrorBtn" class="icon-btn mini" type="button" title="关闭提示">×</button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const STORAGE_KEYS = {
+        lastApp: "agy_open_in_last_app",
+        favorites: "agy_open_in_favorites",
+        newWindow: "agy_open_in_new_window",
+      };
+
+      const APP_ICONS = {
+        vscode: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M17.5 2.5L21.5 4.4V19.6L17.5 21.5L9.2 13.8L4.7 17.2L2.5 16.1V7.9L4.7 6.8L9.2 10.2L17.5 2.5ZM17.5 6.8L11.7 12L17.5 17.2V6.8Z" fill="#007ACC"/></svg>`,
+        "trae-cn": `<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" fill="#10B981"/><path d="M7.5 9H16.5M12 9V16.5" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+        goland: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" fill="#087CFA"/><path d="M7 16.5H13" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/><text x="6.5" y="13" fill="#ffffff" font-size="7.5" font-weight="700" font-family="sans-serif">GO</text></svg>`,
+        pycharm: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" fill="#21D789"/><path d="M7 16.5H13" stroke="#0F172A" stroke-width="2" stroke-linecap="round"/><text x="6.5" y="13" fill="#0F172A" font-size="7.5" font-weight="700" font-family="sans-serif">PC</text></svg>`,
+        winc: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" fill="#8B5CF6"/><path d="M7 9L9.5 15.5L12 10.5L14.5 15.5L17 9" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      };
+
+      const FOLDER_SVG = `<svg class="folder-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+      const FALLBACK_ICON = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>`;
+      const STAR_SVG = (filled) =>
+        filled
+          ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`
+          : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+      const CHECK_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+      function readStore(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+
+      function writeStore(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch {}
+      }
+
+      const state = {
+        workspaces: [],
+        selectedPath: "",
+        worktreeInfo: null,
+        apps: [],
+        selectedAppId: readStore(STORAGE_KEYS.lastApp, ""),
+        favorites: readStore(STORAGE_KEYS.favorites, []),
+        newWindow: Boolean(readStore(STORAGE_KEYS.newWindow, false)),
+        menuOpen: false,
+      };
+
+      function syncTheme() {
+        const probe = document.createElement("span");
+        probe.style.cssText = "position:absolute;visibility:hidden;color:var(--background, #0f1117)";
+        document.documentElement.appendChild(probe);
+        const c = getComputedStyle(probe).color;
+        probe.remove();
+        const nums = (c.match(/[\d.]+/g) || []).map(Number);
+        if (nums.length < 3) return;
+        const scale = c.startsWith("color(") ? 1 : 255;
+        const [r, g, b] = nums.slice(0, 3).map((v) => v / scale);
+        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        document.documentElement.dataset.theme = lum < 0.5 ? "dark" : "light";
+      }
+
+      syncTheme();
+      new MutationObserver(syncTheme).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["style"],
+      });
+
+      function escapeHtml(str) {
+        return String(str ?? "").replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c]));
+      }
+
+      function baseName(p) {
+        if (!p) return "未识别项目";
+        const parts = p.replace(/\/+$/, "").split("/");
+        return parts[parts.length - 1] || p;
+      }
+
+      function compactPath(p) {
+        if (!p) return "";
+        const parts = p.replace(/\/+$/, "").split("/").filter(Boolean);
+        if (parts.length <= 3) return p;
+        return `.../${parts.slice(-3).join("/")}`;
+      }
+
+      function setError(text) {
+        const bar = document.getElementById("statusBar");
+        const textEl = document.getElementById("statusText");
+        if (!text) {
+          bar.classList.remove("visible");
+          textEl.textContent = "";
+          return;
+        }
+        textEl.textContent = text;
+        bar.classList.add("visible");
+      }
+
+      function apiFetch(url, options) {
+        const f = window.sidecar?.fetch ? window.sidecar.fetch.bind(window.sidecar) : fetch;
+        return f(url, options);
+      }
+
+      function resolveDefaultApp() {
+        if (!state.apps.length) return null;
+        const saved = state.apps.find((a) => a.id === state.selectedAppId);
+        if (saved) return saved;
+        const fav = state.apps.find((a) => state.favorites.includes(a.id));
+        if (fav) return fav;
+        const ready = state.apps.find((a) => a.available);
+        return ready ?? state.apps[0];
+      }
+
+      function toggleFavorite(appId) {
+        const idx = state.favorites.indexOf(appId);
+        if (idx >= 0) state.favorites.splice(idx, 1);
+        else state.favorites.push(appId);
+        writeStore(STORAGE_KEYS.favorites, state.favorites);
+        render();
+      }
+
+      function setMenuOpen(open) {
+        state.menuOpen = Boolean(open);
+        const menu = document.getElementById("dropdownMenu");
+        const toggle = document.getElementById("dropdownToggleBtn");
+        menu.classList.toggle("open", state.menuOpen);
+        toggle.setAttribute("aria-expanded", String(state.menuOpen));
+      }
+
+      function buildMenuItemsHtml(apps, selectedId) {
+        return apps
+          .map((app) => {
+            const isSelected = app.id === selectedId;
+            const isFav = state.favorites.includes(app.id);
+            const icon = APP_ICONS[app.id] || FALLBACK_ICON;
+            return `
+              <div class="menu-item">
+                <button class="menu-item-btn" type="button" data-pick-app="${escapeHtml(app.id)}">
+                  <span class="check-mark">${isSelected ? CHECK_SVG : ""}</span>
+                  ${icon}
+                  <span class="menu-item-name">${escapeHtml(app.name)}</span>
+                  ${app.available ? "" : `<span class="menu-item-hint">未安装</span>`}
+                </button>
+                <button class="star-btn ${isFav ? "active" : ""}" type="button" data-fav-app="${escapeHtml(app.id)}" title="${isFav ? "取消收藏" : "收藏到快捷栏"}">
+                  ${STAR_SVG(isFav)}
+                </button>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function render() {
+        const info = state.worktreeInfo;
+        const headerEl = document.getElementById("projectHeader");
+        const activePathEl = document.getElementById("activePathText");
+        const copyBtn = document.getElementById("copyPathBtn");
+        const emptyEl = document.getElementById("emptyHint");
+        const wtSection = document.getElementById("worktreesSection");
+        const wtList = document.getElementById("worktreeList");
+        const wtCountLabel = document.getElementById("wtCountLabel");
+        const resetWtBtn = document.getElementById("resetWtBtn");
+        const primaryBtn = document.getElementById("primaryOpenBtn");
+        const primaryIcon = document.getElementById("primaryAppIcon");
+        const primaryLabel = document.getElementById("primaryAppLabel");
+        const toggleBtn = document.getElementById("dropdownToggleBtn");
+        const menuEl = document.getElementById("dropdownMenu");
+        const favBar = document.getElementById("favBar");
+
+        if (info) {
+          emptyEl.style.display = "none";
+          copyBtn.style.display = "inline-flex";
+          const selectedWt = info.allWorktrees?.find((w) => w.path === state.selectedPath);
+          const projectName = baseName(info.mainRepoPath || info.currentRoot);
+          let badgeText = "目录";
+          let badgeClass = "badge-warn";
+
+          if (info.isGitRepo) {
+            const branch =
+              selectedWt?.branch ||
+              (selectedWt?.detached ? "detached" : "") ||
+              info.activeWorktree?.branch ||
+              (info.activeWorktree?.detached ? "detached" : "");
+            const showingMain = selectedWt ? selectedWt.isMain : !info.isLinkedWorktree;
+            if (!showingMain) {
+              badgeText = branch ? `Worktree · ${branch}` : "Worktree";
+              badgeClass = "badge-worktree";
+            } else {
+              badgeText = branch ? `主仓库 · ${branch}` : "主仓库";
+              badgeClass = "badge-main";
+            }
+          }
+
+          headerEl.innerHTML = `
+            <span class="project-name-wrap">${FOLDER_SVG}<span>${escapeHtml(projectName)}</span></span>
+            <span class="badge ${badgeClass}">${escapeHtml(badgeText)}</span>
+          `;
+          activePathEl.textContent = state.selectedPath || info.currentRoot;
+          activePathEl.title = activePathEl.textContent;
+        } else {
+          copyBtn.style.display = "none";
+          headerEl.innerHTML = `
+            <span class="project-name-wrap">${FOLDER_SVG}<span>当前窗口</span></span>
+            <span class="badge badge-warn">未打开项目</span>
+          `;
+          activePathEl.textContent = "等待打开项目或 worktree...";
+          activePathEl.title = "";
+          emptyEl.style.display = "block";
+        }
+
+        // Primary split button
+        const defaultApp = resolveDefaultApp();
+        if (defaultApp) {
+          state.selectedAppId = defaultApp.id;
+          primaryIcon.innerHTML = APP_ICONS[defaultApp.id] || FALLBACK_ICON;
+          primaryLabel.textContent = `在 ${defaultApp.name} 中打开`;
+          primaryBtn.disabled = !state.selectedPath;
+          toggleBtn.disabled = !state.selectedPath;
+        } else {
+          primaryIcon.innerHTML = FALLBACK_ICON;
+          primaryLabel.textContent = "选择编辑器打开";
+          primaryBtn.disabled = true;
+          toggleBtn.disabled = true;
+        }
+
+        // Dropdown menu
+        const favApps = state.apps.filter((a) => state.favorites.includes(a.id));
+        const otherApps = state.apps.filter((a) => !state.favorites.includes(a.id));
+        let menuHtml = "";
+        if (favApps.length > 0) {
+          menuHtml += `<div class="menu-section-label">收藏</div>`;
+          menuHtml += buildMenuItemsHtml(favApps, state.selectedAppId);
+          if (otherApps.length > 0) {
+            menuHtml += `<div class="menu-divider"></div>`;
+            menuHtml += `<div class="menu-section-label">全部编辑器</div>`;
+            menuHtml += buildMenuItemsHtml(otherApps, state.selectedAppId);
+          }
+        } else {
+          menuHtml += buildMenuItemsHtml(state.apps, state.selectedAppId);
+        }
+        menuHtml += `
+          <div class="menu-divider"></div>
+          <div class="menu-footer">
+            <label class="toggle">
+              <input id="newWindowCheck" type="checkbox" ${state.newWindow ? "checked" : ""} />
+              在新窗口打开
+            </label>
+          </div>
+        `;
+        menuEl.innerHTML = menuHtml;
+
+        // Favorite quick chips
+        if (favApps.length > 0 && state.selectedPath) {
+          favBar.style.display = "flex";
+          favBar.innerHTML = favApps
+            .map((app) => `
+              <button class="fav-chip ${app.id === state.selectedAppId ? "active" : ""}" type="button" data-quick-app="${escapeHtml(app.id)}" title="切换为 ${escapeHtml(app.name)}">
+                ${APP_ICONS[app.id] || FALLBACK_ICON}
+                <span>${escapeHtml(app.name)}</span>
+              </button>
+            `)
+            .join("");
+        } else {
+          favBar.style.display = "none";
+          favBar.innerHTML = "";
+        }
+
+        // Worktrees section
+        wtList.innerHTML = "";
+        const visibleWorktrees = (info?.isGitRepo ? info.allWorktrees : []).filter((w) => !w.bare);
+        if (visibleWorktrees.length > 1) {
+          wtSection.style.display = "block";
+          wtCountLabel.textContent = `Worktrees (${visibleWorktrees.length})`;
+          resetWtBtn.style.display =
+            info.currentRoot && state.selectedPath && state.selectedPath !== info.currentRoot
+              ? "inline-block"
+              : "none";
+
+          for (const wt of visibleWorktrees) {
+            const tags = [];
+            if (wt.isActive) tags.push("当前");
+            if (wt.isMain) tags.push("主仓库");
+            const branch = wt.branch || (wt.detached ? "detached" : "worktree");
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "wt-item" + (state.selectedPath === wt.path ? " selected" : "");
+            btn.title = wt.path;
+            btn.innerHTML = `
+              <div class="wt-item-main">
+                <div class="wt-branch">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+                  <span>${escapeHtml(branch)}</span>
+                </div>
+                <div class="wt-subpath">${escapeHtml(compactPath(wt.path))}</div>
+              </div>
+              ${tags.length ? `<span class="badge ${wt.isMain ? "badge-main" : "badge-worktree"}">${escapeHtml(tags.join(" / "))}</span>` : ""}
+            `;
+            btn.addEventListener("click", () => {
+              state.selectedPath = wt.path;
+              render();
+            });
+            wtList.appendChild(btn);
+          }
+        } else {
+          wtSection.style.display = "none";
+        }
+      }
+
+      async function inspectWorkspaces(uris) {
+        state.workspaces = Array.isArray(uris) ? uris : [];
+        const qs = new URLSearchParams();
+        if (state.workspaces.length > 0) {
+          qs.set("workspaces", JSON.stringify(state.workspaces));
+        }
+
+        const refreshBtn = document.getElementById("refreshBtn");
+        refreshBtn.classList.add("spinning");
+
+        try {
+          const res = await apiFetch(`/api/inspect?${qs.toString()}`, { method: "GET" });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+          state.worktreeInfo = data.worktreeInfo;
+          state.apps = Array.isArray(data.apps) ? data.apps : [];
+          if (data.worktreeInfo) {
+            const exists = data.worktreeInfo.allWorktrees?.some((w) => w.path === state.selectedPath);
+            if (!state.selectedPath || !exists) {
+              state.selectedPath = data.worktreeInfo.currentRoot;
+            }
+          } else {
+            state.selectedPath = "";
+          }
+          setError("");
+          render();
+        } catch (err) {
+          setError(`识别失败: ${err.message || String(err)}`);
+        } finally {
+          refreshBtn.classList.remove("spinning");
+        }
+      }
+
+      function selectApp(appId) {
+        state.selectedAppId = appId;
+        writeStore(STORAGE_KEYS.lastApp, appId);
+        setMenuOpen(false);
+        setError("");
+        render();
+      }
+
+      async function openInApp(appId) {
+        const app = state.apps.find((a) => a.id === appId);
+        const appName = app?.name || appId;
+        state.selectedAppId = appId;
+        writeStore(STORAGE_KEYS.lastApp, appId);
+        setMenuOpen(false);
+        setError("");
+        render();
+
+        const primaryBtn = document.getElementById("primaryOpenBtn");
+        const primaryLabel = document.getElementById("primaryAppLabel");
+        primaryBtn.disabled = true;
+        primaryLabel.textContent = `正在打开 ${appName}...`;
+
+        try {
+          const res = await apiFetch("/api/open", {
+            method: "POST",
+            body: JSON.stringify({
+              app: appId,
+              projectPath: state.selectedPath,
+              scope: "exact",
+              newWindow: state.newWindow,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        } catch (err) {
+          setError(`打开失败: ${err.message || String(err)}`);
+        } finally {
+          render();
+        }
+      }
+
+      // Event bindings
+      document.getElementById("primaryOpenBtn").addEventListener("click", () => {
+        if (state.selectedAppId && state.selectedPath) {
+          openInApp(state.selectedAppId);
+        }
+      });
+
+      document.getElementById("dropdownToggleBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        setMenuOpen(!state.menuOpen);
+      });
+
+      document.getElementById("dropdownMenu").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const favBtn = e.target.closest("[data-fav-app]");
+        if (favBtn) {
+          toggleFavorite(favBtn.dataset.favApp);
+          return;
+        }
+        const pickBtn = e.target.closest("[data-pick-app]");
+        if (pickBtn) {
+          selectApp(pickBtn.dataset.pickApp);
+          return;
+        }
+      });
+
+      document.getElementById("dropdownMenu").addEventListener("change", (e) => {
+        if (e.target.id === "newWindowCheck") {
+          state.newWindow = Boolean(e.target.checked);
+          writeStore(STORAGE_KEYS.newWindow, state.newWindow);
+        }
+      });
+
+      document.getElementById("favBar").addEventListener("click", (e) => {
+        const chip = e.target.closest("[data-quick-app]");
+        if (chip) {
+          selectApp(chip.dataset.quickApp);
+        }
+      });
+
+      document.getElementById("resetWtBtn").addEventListener("click", () => {
+        if (state.worktreeInfo?.currentRoot) {
+          state.selectedPath = state.worktreeInfo.currentRoot;
+          render();
+        }
+      });
+
+      document.getElementById("copyPathBtn").addEventListener("click", async () => {
+        if (!state.selectedPath) return;
+        const copyBtn = document.getElementById("copyPathBtn");
+        const origHtml = copyBtn.innerHTML;
+        try {
+          await navigator.clipboard.writeText(state.selectedPath);
+          copyBtn.classList.add("copied");
+          copyBtn.innerHTML = CHECK_SVG;
+          setTimeout(() => {
+            copyBtn.classList.remove("copied");
+            copyBtn.innerHTML = origHtml;
+          }, 1200);
+        } catch {
+          setError("无法访问剪贴板");
+        }
+      });
+
+      document.getElementById("dismissErrorBtn").addEventListener("click", () => setError(""));
+
+      document.getElementById("refreshBtn").addEventListener("click", async () => {
+        const uris = window.sidecar?.getWorkspaceUris
+          ? await window.sidecar.getWorkspaceUris()
+          : state.workspaces;
+        state.selectedPath = "";
+        await inspectWorkspaces(uris);
+      });
+
+      document.addEventListener("click", () => {
+        if (state.menuOpen) setMenuOpen(false);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && state.menuOpen) {
+          setMenuOpen(false);
+        }
+      });
+
+      if (window.sidecar?.onWorkspaceChange) {
+        window.sidecar.onWorkspaceChange((uris) => {
+          state.selectedPath = "";
+          inspectWorkspaces(uris);
+        });
+      }
+
+      (async () => {
+        const uris = window.sidecar?.getWorkspaceUris
+          ? await window.sidecar.getWorkspaceUris()
+          : [];
+        await inspectWorkspaces(uris);
+      })();
+    })();
+  </script>
+</body>
+</html>
